@@ -2,332 +2,197 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <conio.h>
 #include <string.h>
-
-
-
-// This is for PONG game
-#define VERTICAL 18
-#define HORIZONTAL 80
-
-
-
-
-
-
-
-
-typedef struct user_info
-{
-    char name[20];
-
-} user_info;
-
-
-
-
-
+#include "minigames.h"
 
 
 void print_menu();
-
-// PONG
-int pong();
-void start(char[VERTICAL][HORIZONTAL], int, int, int, int, int, int);
-void border_pong(char[VERTICAL][HORIZONTAL]);
-void player_raquet(char [VERTICAL][HORIZONTAL], int, int);
-void ia_raquet(char [VERTICAL][HORIZONTAL], int, int);
-void print_pong(char [VERTICAL][HORIZONTAL], int,int);
-void ball(char[VERTICAL][HORIZONTAL], int, int);
-void pong_loop(char[VERTICAL][HORIZONTAL], int, int, int, int, int, int, int, int, int, char);
-void draw(char [VERTICAL][HORIZONTAL], int, int);
-void input(char [VERTICAL][HORIZONTAL], int *,int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, char);
-void update(char[VERTICAL][HORIZONTAL], int, int, int, int, int, int);
-void randomx(int *);
-
-int main(){
+void print_lb(table_lb);
+table_lb sort_lb(table_lb);
+table_lb add_random(table_lb);
 
 
-    print_menu();
-    char choice;
-    printf("\nInput your choice (ESC to exit)...  ");
-    
-    choice = getch();
-    char qk_restart;
+int main()
+{
+  
+  int first_gato=0, first_blackjack=0;
+  char gamename='N';
+  
+  // ========= Leaderboards for games =========
+  
+  // ========= GATO
+  table_lb game_lb;
+  game_lb.free_indx=0;
+      //initialize all FREE spaces
+  for(int i = 0;i <= 99;i++)
+  {
+    strcpy(game_lb.player[i].name,"FREE");
+    game_lb.player[i].wins=0;
+  } 
+      // Add some example data
+  game_lb=add_random(game_lb);
+      // Sort by wins
+  game_lb=sort_lb(game_lb);
+  
+  // ========= BLACKJACK
+  table_lb bj_lb;
+  bj_lb.free_indx=0;
+    //initialize all FREE spaces
+  for(int i = 0;i <= 99;i++)
+  {
+    strcpy(bj_lb.player[i].name,"FREE");
+    bj_lb.player[i].wins=0;
+  } 
+      // Add some example data
+  bj_lb=add_random(bj_lb);
+      // Sort by wins
+  bj_lb=sort_lb(bj_lb);
+  
+  // ========= AHORCADO
+  table_lb ah_lb;
+  ah_lb.free_indx=0;
+      //initialize all FREE spaces
+  for(int i = 0;i <= 99;i++)
+  {
+    strcpy(ah_lb.player[i].name,"FREE");
+    ah_lb.player[i].wins=0;
+  } 
+      // Add some example data
+  ah_lb=add_random(ah_lb);
+      // Sort by wins
+  ah_lb=sort_lb(ah_lb);
 
-    switch(choice){
-        case '1':
-            
-            while(qk_restart!=27){
-                pong();
-                system("cls");
-                printf("Quick restart? (ESC exit).......");
-                qk_restart= getch();
-            }
-            
-            break;
+  // =========== PONG
+  table_lb pong_lb;
+  pong_lb.free_indx=0;
+    //initialize all FREE spaces
+  for(int i = 0;i <= 99;i++)
+  {
+    strcpy(pong_lb.player[i].name,"FREE");
+    pong_lb.player[i].wins=0;
+  } 
+       // Add some example data
+  pong_lb=add_random(pong_lb);
+      // Sort by wins
+  pong_lb=sort_lb(pong_lb);
+
+  while(1)
+  {
+      print_menu();
+      char gamename;
+      scanf("%c",&gamename);
+      getchar();
+      
+      switch(gamename)
+      {
+        case 'G':
+          game_lb=gato(game_lb);
+          game_lb=sort_lb(game_lb);
+          break;
+        case 'B':
+          bj_lb=blackjack(bj_lb);
+          bj_lb=sort_lb(bj_lb);
+          break;
+        case 'A':
+          ah_lb=Ahorcado(ah_lb);
+          ah_lb=sort_lb(ah_lb);
+          break;
+        case 'P':
+          pong_lb=pong(pong_lb);
+          pong_lb=sort_lb(pong_lb);
+          break;
+        case 'L':
+          print_lb(game_lb);
+          break;
+        case 'K':
+          print_lb(bj_lb);
+          break;
+        case 'J':
+          print_lb(ah_lb);
+          break;
+        case 'O':
+          print_lb(pong_lb);
+          break;
+        case 'S':
+          printf("¡Nos vemos pronto!\n");
+          return 0;
+          break;
         default:
-            break;
-    }
-
-
+          printf("Introduce un nombre válido\n");
+          break;
+      }
+  }
 }
 
-// Main menu (shows available games)
+void print_lb(table_lb game_lb)
+{
+  system("cls");
+  if(game_lb.free_indx!=0){
+    printf("Leaderboard\n===================================\nNombre         || Juegos Ganados ||\n");
+    printf("-----------------------------------\n");
+    for(int i=0; i<game_lb.free_indx; i++)
+    {
+      printf("%-15s||%16.d||\n", game_lb.player[i].name, game_lb.player[i].wins);  
+    }
+    printf("===================================\n");
+    printf("\nPresiona enter para regresar......");
+    getchar();
+  }
+  else
+  {
+    printf("\nNo hay Usuarios Registrados\n");
+    printf("Presiona enter para regresar......");
+    getchar();
+  }
+}
+
+// SORT BY WINS
+table_lb sort_lb(table_lb game_lb)
+{
+  
+  player aux_var, aux_var1;
+  
+  for(int j=0; j<game_lb.free_indx-1; j++)
+  {
+    for (int i=0; i<(game_lb.free_indx-1); i++)
+    {
+      // Sort by who has the most wins
+      if (game_lb.player[i].wins < game_lb.player[i+1].wins){
+        aux_var=game_lb.player[i];
+        aux_var1=game_lb.player[i+1];
+        game_lb.player[i]=aux_var1;
+        game_lb.player[i+1]=aux_var;
+      }
+    }
+  }
+  return game_lb;
+}
+
+// EXAMPLE NAMES IN LEADERBOARD
+table_lb add_random(table_lb game_lb)
+{
+  char rand_names[3][15]={"Oscar", "Abraham", "Ramiro"};
+  for(int i=0; i<3; i++)
+  {
+    strcpy(game_lb.player[game_lb.free_indx].name, rand_names[i]);
+    game_lb.player[game_lb.free_indx].wins=i+1;
+    game_lb.free_indx++;
+  }
+  return game_lb;
+}
+
 void print_menu(){
-    system("cls");
-    printf("\n\n\t===MINI GAMES===\n");
-    printf("\n \n ---PONG--- == 1 ==\n");
-
+  system("cls");
+  printf("\t.___  ___.  __  .__   __.  __       _______      ___      .___  ___.  _______     _______.    \n"
+        "\t|   \\/   | |  | |  \\ |  | |  |     /  _____|    /   \\     |   \\/   | |   ____|   /       | \n"
+        "\t|  \\  /  | |  | |   \\|  | |  |    |  |  __     /  ^  \\    |  \\  /  | |  |__     |   (----` \n"
+        "\t|  |\\/|  | |  | |  . `  | |  |    |  | |_ |   /  /_\\  \\   |  |\\/|  | |   __|     \\   \\   \n"
+        "\t|  |  |  | |  | |  |\\   | |  |    |  |__| |  /  _____  \\  |  |  |  | |  |____.----)   |      \n"
+        "\t|__|  |__| |__| |__| \\__| |__|     \\______| /__/     \\__\\ |__|  |__| |_______|_______/     \n");
+  printf("\t--------------------------------\n");
+  printf("!Bienvenido al arcade! Que minijuego quieres jugar?\n");
+  printf("\t- Gato --> G\n\t- Blackjack --> B\n\t- Ahorcado --> A\n\t- Pong --> P\n\n\t- Gato Leaderboard --> L\n\t- Blackjack Leaderboard --> K\n\t- Ahorcado Leaderboard --> J\n\t- Pong Leaderboard --> O\n\n\t- Salir --> S\n");
 }
 
 
-int pong(){
-    int ballx, bally, inijug, finjug, iniia, finia;
 
-    int modx, mody, modia;
-
-    char field [VERTICAL][HORIZONTAL];
-
-    system("cls");
-    printf("\n\n ===CONTROLLS===\n"
-    "\n \tw -> UP\n\ts -> DOWN\n");
-    printf("\nSelect dificulty...\n Easy      --- 1\n Normal    --- 2\n Hard      --- 3\nImposible --- 4\n\n.... ");
-    char key= getch();
-
-    // Set the seed for the random numbers
-    srand(time(NULL));
-
-    ballx=40;
-    modx=-1;
-    mody=-1;
-    modia=-1;
-    randomx(&bally);
-
-    switch (key){
-        case '1':
-            inijug=8;
-            finjug=14;
-
-            iniia=8;
-            finia=12;
-            break;
-        case '2':
-            inijug=9;
-            finjug=14;
-
-            iniia=6;
-            finia=14;
-            break;
-        case '3':
-            inijug=10;
-            finjug=14;
-
-            iniia=3;
-            finia=15;
-            break;
-        case '4':
-            inijug=8;
-            finjug=14;
-
-            iniia=8;
-            finia=12;
-        default:
-            break;
-    }
-    start(field, ballx, bally, inijug, finjug, iniia, finia);
-    pong_loop(field, ballx, bally, inijug, finjug, iniia, finia, modx, mody, modia, key);
-    
-
-    return 0;
-}
-
-void start (char field[VERTICAL][HORIZONTAL], int ballx,int bally, int inijug, int finjug, int iniia, int finia){
-    border_pong(field);
-    player_raquet(field, inijug, finjug);
-    ia_raquet(field, iniia, finia);
-    ball(field,ballx, bally);
-}
-void border_pong(char field[VERTICAL][HORIZONTAL]){
-    for (int i=0; i<VERTICAL; i++){
-        for(int j=0; j<HORIZONTAL; j++){
-            if(i==0 || i==VERTICAL-1){
-                field[i][j]='#';
-            }
-            else if(j==0 || j==HORIZONTAL-1){
-                field[i][j]='#';
-            }
-            else if(j==(HORIZONTAL/2)){
-                field[i][j]='|';
-            }
-            else{
-                field[i][j]=' ';
-            }
-        }
-    }
-}
-void player_raquet(char field[VERTICAL][HORIZONTAL], int inijug, int finjug){
-    int row=2;
-    for (int i=inijug; i<finjug; i++){
-        field[i][row]='|';
-    }
-
-}
-void ia_raquet(char field[VERTICAL][HORIZONTAL], int iniia, int finia){
-    int row=-3;
-    for (int i=iniia; i<finia; i++){
-        field[i+1][row]='|';
-    }
-}
-void print_pong(char field[VERTICAL][HORIZONTAL], int score_player, int score_ia){
-    printf("Player %d                                  IA %d\n",score_player,score_ia );
-    for (int i=0; i<VERTICAL; i++){
-        for(int j=0; j<HORIZONTAL; j++){
-            printf("%c", field[i][j]);
-        }
-        printf("\n");
-    }
-
-}
-void ball(char field[VERTICAL][HORIZONTAL], int ballx, int bally){
-    field[bally][ballx]='o';
-}
-void pong_loop(char field[VERTICAL][HORIZONTAL], int ballx,int bally, int inijug, int finjug, int iniia, int finia, int modx, int mody, int modia, char dif){
-    int score_player=0, score_ia=0;
-    do{
-        draw(field, score_player, score_ia);
-        input(field, &ballx, &bally, &inijug, &finjug, &iniia, &finia, &modx, &mody, &modia, &score_player, &score_ia, dif);
-        update(field, ballx, bally, inijug, finjug, iniia, finia);
-        // usleep(10000);
-
-    }while (score_player <10 && score_ia<10);
-    if (score_player==10){
-        printf("\nPlayer WINS!!!\nEnter to continue...");
-        getchar();
-    }
-    else if(score_ia==10){
-        printf("\nIA WINS!!!\nEnter to continue...");
-        getchar();
-    }
-    
-}
-void draw(char field[VERTICAL][HORIZONTAL], int score_player, int score_ia){
-    system("cls");
-    print_pong(field, score_player, score_ia);
-}
-// Give all variables by reference, ant not by value so we can directly modify them
-void input(char field[VERTICAL][HORIZONTAL], int *ballx,int *bally, int *inijug, int *finjug, int *iniia, int *finia, int *modx, int *mody, int *modia, int *score_player, int *score_ia, char dif){
-    
-    char key;
-
-    // If ball hits the bottom we change direction on the y axis
-    if (*bally==1 || *bally==VERTICAL-2){
-        *mody*=-1;
-    }
-
-    // If ball hits left wall we count it as a point for the IA
-    if(*ballx==1){
-        *score_ia+=1;
-        randomx(bally);
-        *ballx=40;
-    }
-    // If ball hits right wall we count it as a point for the player
-    if(*ballx==HORIZONTAL-2){
-        *score_player+=1;
-        randomx(bally);
-        *ballx=40;
-    }
-
-    // If ball hits the raquet of the player we invert the x direction of the ball
-    if(*ballx == 3){
-        for(int i=(*inijug); i<=(*finjug); i++ ){
-            if(i == (*bally)){
-                *modx*=-1;
-                
-            }
-        }
-    }
-
-    // If ball hits the raquet of the IA we invert the x direction of the ball
-    if(*ballx == (HORIZONTAL-4)){
-        for(int i=(*iniia); i<=(*finia); i++ ){
-            if(i == (*bally)){
-                *modx*=-1;
-            }
-        }
-    }
-
-
-    // Invert the direction of movement of the IA raquet once it reaches a border_pong
-    if (dif!='4'){
-        if(*iniia ==1 || *finia == VERTICAL-1){
-            *modia*=-1;
-        }
-    }else{
-        // Bit of more inteligence for the IA that makes the IA imposible to beat
-        if(*mody==-1){
-            *modia=-1;
-        }
-        else if(*mody==1){
-            *modia=1;
-        }
-    }
-    
-    
-
-    if (*score_ia<=10 && *score_player<=10){
-    //BALL
-        *ballx+=(*modx);
-        *bally+=(*mody);
-
-    //Raquet movement of IA
-        if(dif=='4'){
-            if (*iniia ==1 && *modia==1){
-                *iniia+=(*modia);
-                *finia+=(*modia);
-            }
-            else if(*finia ==VERTICAL-1 && *modia==-1){
-                *iniia+=(*modia);
-                *finia+=(*modia);
-            }
-            else if(*iniia !=1 && *finia != VERTICAL-1){
-                *iniia+=(*modia);
-                *finia+=(*modia);
-            }
-        }
-        else{
-            *iniia+=(*modia);
-            *finia+=(*modia);
-        }
-        //
-        if (kbhit()==1){
-            key= getch();
-            if (key=='w'){
-                if(*inijug!=1){
-                    *inijug-=1;
-                    *finjug-=1;
-                }
-            }
-            else if(key=='s'){
-                if(*finjug!=VERTICAL-1){
-                    *finjug+=1;
-                    *inijug+=1;
-                }
-            }
-        }
-    }
-
-}
-
-void update(char field[VERTICAL][HORIZONTAL], int ballx,int bally, int inijug, int finjug, int iniia, int finia){
-    border_pong(field);
-    player_raquet(field, inijug, finjug);
-    ia_raquet(field, iniia, finia);
-    ball(field,ballx, bally);
-}
-
-void randomx( int *bally){
-    int lower=3, upper=VERTICAL-3;
-    *bally=(rand()%(upper - lower +1)) +lower;
-}
