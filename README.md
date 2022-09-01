@@ -7,6 +7,6 @@ Avalable Games:
 3. Ahorcado
 4. Pong
 
-There is a leaderboard system that keeps a record of players names ands wins, if yo have played already a game you can search your name.
+There is a leaderboard system that keeps a record of players names ands wins, if you have played already a game you can search your name.
 
-Proyect in colaboration with Roman from my Prgraming class :).
+Proyect in colaboration with Roman from my prgraming class :).
